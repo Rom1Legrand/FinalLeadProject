@@ -1,0 +1,17 @@
+boto3
+gunicorn 
+streamlit 
+plotly
+mlflow
+psycopg2-binary
+pandas==1.3.3
+numpy==1.21.2
+scikit-learn==0.24.2
+joblib==1.0.1
+matplotlib==3.4.3
+seaborn==0.11.2
+huggingface_hub==0.11.1
+mlflow==1.23.1
+protobuf==3.20.*
+Flask>=2.0.0
+Werkzeug>=2.0.0
