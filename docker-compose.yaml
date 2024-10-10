@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  jenkins-docker:
+    image: docker:dind
+    container_name: jenkins-docker
+    privileged: true
+    networks:
+      jenkins:
+        aliases:
+          - docker
+    environment:
+      DOCKER_TLS_CERTDIR: "/certs"
+    volumes:
+      - jenkins-docker-certs:/certs/client
+      - jenkins-data:/var/jenkins_home
+    ports:
+      - "2376:2376"
+    command: --storage-driver overlay2
+    restart: always
+
+  jenkins-blueocean:
+    image: jedha/sample-jenkins-server
+    container_name: jenkins-blueocean
+    networks:
+      - jenkins
+    environment:
+      DOCKER_HOST: "tcp://docker:2376"
+      DOCKER_CERT_PATH: "/certs/client"
+      DOCKER_TLS_VERIFY: "1"
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      - jenkins-docker-certs:/certs/client:ro
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    restart: on-failure
+
+  neon:
+    image: neon:latest
+    container_name: neon
+    networks:
+      - jenkins
+    ports:
+      - "6379:6379"
+    restart: always
+
+  mlflow:
+    image: mlflow/mlflow:latest
+    container_name: mlflow
+    networks:
+      - jenkins
+    ports:
+      - "5000:5000"
+    environment:
+      MLFLOW_S3_ENDPOINT_URL: https://s3.amazonaws.com
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+    restart: always
+
+  evidently:
+    image: evidently/evidently:latest
+    container_name: evidently
+    networks:
+      - jenkins
+    ports:
+      - "8000:8000"
+    restart: always
+
+networks:
+  jenkins:
+
+volumes:
+  jenkins-docker-certs:
+  jenkins-data:
