@@ -3,7 +3,7 @@ version: '3.8'
 services:
   jenkins-docker:
     image: docker:dind
-    container_name: jenkins-docker
+    container_name: jenkins-docker-finalproject
     privileged: true
     networks:
       jenkins:
@@ -19,9 +19,9 @@ services:
     command: --storage-driver overlay2
     restart: always
 
-  jenkins-blueocean:
-    image: jedha/sample-jenkins-server
-    container_name: jenkins-blueocean
+  jenkins-finalproject:
+    build: .
+    container_name: jenkins-finalproject
     networks:
       - jenkins
     environment:
@@ -35,37 +35,6 @@ services:
       - "8080:8080"
       - "50000:50000"
     restart: on-failure
-
-  neon:
-    image: neon:latest
-    container_name: neon
-    networks:
-      - jenkins
-    ports:
-      - "6379:6379"
-    restart: always
-
-  mlflow:
-    image: mlflow/mlflow:latest
-    container_name: mlflow
-    networks:
-      - jenkins
-    ports:
-      - "5000:5000"
-    environment:
-      MLFLOW_S3_ENDPOINT_URL: https://s3.amazonaws.com
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
-    restart: always
-
-  evidently:
-    image: evidently/evidently:latest
-    container_name: evidently
-    networks:
-      - jenkins
-    ports:
-      - "8000:8000"
-    restart: always
 
 networks:
   jenkins:
