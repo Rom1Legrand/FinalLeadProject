@@ -1,0 +1,86 @@
+version: "3.8"
+services:
+  mlflow:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mlflow_service
+    ports:
+      - "7860:7860"
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - BACKEND_STORE_URI=${BACKEND_STORE_URI}
+      - ARTIFACT_STORE_URI=${ARTIFACT_STORE_URI}
+    volumes:
+      - ./scripts/secrets.sh:/home/app/secrets.sh
+      - ./Data-notebook:/home/app/data
+      - ./supervisord.conf:/etc/supervisor/conf.d/supervisord.conf
+
+    command: ["/usr/bin/supervisord"]
+
+  jenkins-docker:
+    image: docker:dind
+    container_name: jenkins-docker-finalproject
+    privileged: true
+    networks:
+      jenkins:
+        aliases:
+          - docker
+    environment:
+      DOCKER_TLS_CERTDIR: "/certs"
+    volumes:
+      - jenkins-docker-certs:/certs/client
+      - jenkins-data:/var/jenkins_home
+    ports:
+      - "2376:2376"
+    command: --storage-driver overlay2
+    restart: always
+
+  jenkins-finalproject:
+    build: .
+    container_name: jenkins-finalproject
+    networks:
+      - jenkins
+    environment:
+      DOCKER_HOST: "tcp://docker:2376"
+      DOCKER_CERT_PATH: "/certs/client"
+      DOCKER_TLS_VERIFY: "1"
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      - jenkins-docker-certs:/certs/client:ro
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    restart: on-failure
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: your_password
+      POSTGRES_DB: neon_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - jenkins
+
+  ngrok:
+    image: wernight/ngrok
+    container_name: ngrok
+    environment:
+      NGROK_AUTH: your_ngrok_auth_token
+      NGROK_REGION: eu # Modifier en fonction de ta région
+      NGROK_PORT: "jenkins-finalproject:8080" 
+    networks:
+      - jenkins
+
+networks:
+  jenkins:
+
+volumes:
+  jenkins-docker-certs:
+  jenkins-data:

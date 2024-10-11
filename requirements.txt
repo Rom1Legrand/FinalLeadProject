@@ -1,0 +1,11 @@
+mlflow
+scikit-learn
+pandas
+joblib
+boto3
+gunicorn
+flask
+evidently
+pytest
+csv
+os
