@@ -1,0 +1,20 @@
+version: "3.8"
+services:
+  mlflow:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mlflow_service
+    ports:
+      - "7860:7860"
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - BACKEND_STORE_URI=${BACKEND_STORE_URI}
+      - ARTIFACT_STORE_URI=${ARTIFACT_STORE_URI}
+    volumes:
+      - ./scripts/secrets.sh:/home/app/secrets.sh
+      - ./Data-notebook:/home/app/data
+      - ./supervisord.conf:/etc/supervisor/conf.d/supervisord.conf
+
+    command: ["/usr/bin/supervisord"]
