@@ -1,3 +1,12 @@
+#  PostgreSQL
+FROM postgres:latest as postgres-base
+
+# Instal Neon
+RUN apt-get update && apt-get install -y curl
+RUN curl -s https://neon-release.s3.amazonaws.com/neon-1.0.0-linux-amd64.tar.gz | tar -xz -C /usr/local/bin
+
+
+
 FROM jenkins/jenkins:2.462.1-jdk17
 USER root
 RUN apt-get update && apt-get install -y lsb-release

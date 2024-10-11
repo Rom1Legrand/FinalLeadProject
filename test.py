@@ -1,30 +1,33 @@
 import pytest
 import pandas as pd
-import boto3
-from io import StringIO
+import psycopg2
+import os
 import csv
 
 @pytest.fixture
-def s3_client():
-    return boto3.client('s3')
+def db_connection():
+    conn = psycopg2.connect(
+        host=os.environ['POSTGRES_HOST'],
+        database=os.environ['POSTGRES_DB'],
+        user=os.environ['POSTGRES_USER'],
+        password=os.environ['POSTGRES_PASSWORD']
+    )
+    yield conn
+    conn.close()
 
 @pytest.fixture
-def s3_dataset(s3_client):
-    # Remplacez 'your-bucket-name' et 'your-dataset-key.csv' par les vôtres
-    bucket_name = 'your-bucket-name'
-    dataset_key = 'your-dataset-key.csv'
+def db_dataset(db_connection):
+    query = "SELECT * FROM your_table_name;"
+    df = pd.read_sql_query(query, db_connection)
+    return df
 
-    obj = s3_client.get_object(Bucket=bucket_name, Key=dataset_key)
-    data = obj['Body'].read().decode('utf-8')
-    return pd.read_csv(StringIO(data))
-
-def test_first_10_rows(s3_dataset):
+def test_first_10_rows(db_dataset):
     results = []
-    if len(s3_dataset) < 10:
+    if len(db_dataset) < 10:
         results.append(["Fail", "moins de 10 lignes dans la base de données"])
         pytest.fail("moins de 10 lignes dans la base de données")
     else:
-        first_10 = s3_dataset.head(10)
+        first_10 = db_dataset.head(10)
         if first_10.isnull().values.any():
             empty_cells = first_10[first_10.isnull().any(axis=1)]
             results.append(["Fail", f"erreur, cellules vides aux lignes : {empty_cells.index.tolist()}"])

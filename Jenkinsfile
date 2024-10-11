@@ -3,22 +3,40 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = 'final-project'
+        POSTGRES_HOST = 'postgres'
+        POSTGRES_DB = 'neon_db'
+        POSTGRES_USER = 'postgres'
+        POSTGRES_PASSWORD = 'your_password'
     }
 
     stages {
         stage('Clone Repository') {
             steps {
-                git branch: 'main', url:'<https://github.com/Rom1Legrand/FinalLeadProject.git>'
+                git branch: 'main', url: 'https://github.com/Rom1Legrand/FinalLeadProject.git'
             }
         }
 
-        stage('Build Docker Image') {
+    stage('Build Docker Image') {
             steps {
                 sh 'docker build -t ${DOCKER_IMAGE} .'
             }
         }
 
-        stage('Run Unit Tests') {
+    stage('Wait for PostgreSQL') {
+            steps {
+                script {
+                    // Attendre que PostgreSQL soit prêt
+                    sh '''
+                    while ! pg_isready -h ${POSTGRES_HOST} -p 5432 -U ${POSTGRES_USER}; do
+                        echo "Waiting for PostgreSQL...";
+                        sleep 3;
+                    done;
+                    '''
+                }
+            }
+        
+
+    stage('Run Unit Tests') {
             steps {
                 script {
                     sh 'docker run --rm -v "$(pwd):/app" ${DOCKER_IMAGE} pytest test.py --junitxml=unit-tests.xml'
@@ -27,16 +45,8 @@ pipeline {
             }
         }
 
-        stage('Run Monitoring') {
-            steps {
-                script {
-                    // Lancer les outils de monitoring
-                    sh 'docker run --rm -v "$(pwd):/app" ${DOCKER_IMAGE} python monitor.py'
-                }
-            }
-        }
 
-        stage('Run Integration Tests') {
+    stage('Run Integration Tests') {
             steps {
                 script {
                     // Exécuter les tests d'intégration
@@ -45,7 +55,7 @@ pipeline {
             }
         }
 
-        stage('Deploy with Airflow') {
+    stage('Deploy with Airflow') {
             steps {
                 script {
                     // Déploiement avec Airflow
@@ -54,6 +64,17 @@ pipeline {
             }
         }
     }
+
+    stage('Get Ngrok URL') {
+            steps {
+                script {
+                    // Récupérer l'URL Ngrok
+                    sh 'curl --silent http://localhost:4040/api/tunnels | jq -r .tunnels[0].public_url'
+                }
+            }
+        }
+    }
+
 
     post {
         success {

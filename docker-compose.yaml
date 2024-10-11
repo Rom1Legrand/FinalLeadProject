@@ -36,6 +36,30 @@ services:
       - "50000:50000"
     restart: on-failure
 
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: your_password
+      POSTGRES_DB: neon_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - jenkins
+
+  ngrok:
+    image: wernight/ngrok
+    container_name: ngrok
+    environment:
+      NGROK_AUTH: your_ngrok_auth_token
+      NGROK_REGION: eu # Modifier en fonction de ta région
+      NGROK_PORT: "jenkins-finalproject:8080" # Expose Jenkins
+    networks:
+      - jenkins
+
 networks:
   jenkins:
 

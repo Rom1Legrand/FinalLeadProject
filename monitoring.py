@@ -24,9 +24,9 @@ from evidently.renderers.html_widgets import WidgetSize
 
 # load data
 
-past = pd.read_csv("src/02-sample-evidently-app/data/employee_performance_2022.csv")
-reference = pd.read_csv("src/02-sample-evidently-app/data/employee_performance_2023.csv")
-current = = pd.read_csv("src/02-sample-evidently-app/data/employee_performance_2023.csv")
+past = pd.read_csv("XXX")
+reference = pd.read_csv("XXX")
+current = = pd.read_csv("XXX")
 
 # connect
 
