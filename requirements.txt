@@ -6,3 +6,4 @@ boto3
 gunicorn
 flask
 evidently
+huggingface_hub

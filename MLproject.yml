@@ -1,0 +1,19 @@
+name: forest_cover_classification
+
+docker_env:
+  image: lyeshera/sample-mlflow-server
+  environment:
+    - "MLFLOW_TRACKING_URI"
+    - "MLFLOW_EXPERIMENT_ID"
+    - "AWS_ACCESS_KEY_ID"
+    - "AWS_SECRET_ACCESS_KEY"
+
+entry_points:
+  main:
+    parameters:
+      n_estimators: {type: int, default: 100}
+      max_depth: {type: int, default: 10}
+    command: >
+      python /home/app/mlflow_model_training.py
+      --n_estimators {n_estimators}
+      --max_depth {max_depth}

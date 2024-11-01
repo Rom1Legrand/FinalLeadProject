@@ -7,14 +7,21 @@ services:
     container_name: mlflow_service
     ports:
       - "7860:7860"
+    env_file: .env  # Charger les variables d'environnement directement depuis .env
     environment:
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - BACKEND_STORE_URI=${BACKEND_STORE_URI}
-      - ARTIFACT_STORE_URI=${ARTIFACT_STORE_URI}
+      - MLFLOW_TRACKING_URI=${MLFLOW_TRACKING_URI}
+      - AWS_REGION=${AWS_REGION:-eu-north-1}
+      - N_ESTIMATORS=${N_ESTIMATORS:-100}
+      - MAX_DEPTH=${MAX_DEPTH:-10}
     volumes:
       - ./scripts/secrets.sh:/home/app/secrets.sh
       - ./Data-notebook:/home/app/data
       - ./supervisord.conf:/etc/supervisor/conf.d/supervisord.conf
+    command: python /home/app/mlflow_model_training.py --n_estimators ${N_ESTIMATORS:-100} --max_depth ${MAX_DEPTH:-10}
 
-    command: ["/usr/bin/supervisord"]
+
+
+
+
+
+

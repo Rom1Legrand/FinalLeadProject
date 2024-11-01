@@ -1,0 +1,38 @@
+version: "3.8"
+services:
+  mlflow_server:
+    build:
+      context: .
+      dockerfile: Dockerfile.mlflow
+    container_name: mlflow_server
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow_server:5000
+    ports:
+      - "5000:5000"
+    networks:
+      - mlflow_network  # Associe le serveur au réseau personnalisé
+
+  mlflow:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mlflow_service
+    ports:
+      - "7860:7860"
+    env_file: .env
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow_server:5000
+      - AWS_REGION=${AWS_REGION:-eu-north-1}
+      - N_ESTIMATORS=${N_ESTIMATORS:-100}
+      - MAX_DEPTH=${MAX_DEPTH:-10}
+    networks:
+      - mlflow_network  # Associe le conteneur au réseau personnalisé
+
+networks:
+  mlflow_network:
+    external: true
+
+
+
+
+
